@@ -1,16 +1,22 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="admin")
 
 
 @app.route('/test')
 def test():
-    return "qwe"
+    return jsonify({'code': 200})
 
 
 @app.route('/')
 def hello_world():
-    return jsonify({'code': 200})
+    # return app.send_static_file('/index.html')
+    return send_from_directory('admin', 'index.html')
+
+
+@app.route('/<path:path>')
+def catch_all(path):
+    return send_from_directory('admin', 'index.html')
 
 
 if __name__ == '__main__':
