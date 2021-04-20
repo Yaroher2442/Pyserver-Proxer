@@ -7,27 +7,16 @@ import os
 from loguru import logger
 # Our modules
 from sock_thr import SockThread
-
-
-# данные сервера
-host = '0.0.0.0'
-port = 9091
-addr = (host, port)
-
-M_logger = logger
-M_logger.add('../logs/proxy_all.log', format="{time:YYYY-MM-DD in HH:mm:ss} | {level} | {message}",
-             level="DEBUG", rotation="10 MB", compression="zip")
+from config.configorator import Configurator
 
 
 class Proxy:
     def __init__(self):
-        self.config = ''
-        self.addr = addr = (host, port)
+        self.configr = Configurator()
         self.input_socket = socket(AF_INET, SOCK_STREAM)
-        self.input_socket.bind(addr)
+        self.input_socket.bind(host_addr)
         self.input_socket.listen(10)
         self.threads_queue = queue.Queue()
-
 
     @logger.catch
     def proxy_loop(self):
@@ -48,6 +37,17 @@ class Proxy:
 
 
 if __name__ == '__main__':
-    createConfig("settings.ini")
+    # данные сервера
+    configr = Configurator()
+    host = configr.get_conf("MAIN_LOOP", "host_ip")
+    port = configr.get_conf("MAIN_LOOP", "host_port")
+    host_addr = (host, port)
+
+    rotation_logs = configr.get_conf("LOGGER", "rotation")
+    compression_logs = configr.get_conf("LOGGER", "compression")
+    M_logger = logger
+    M_logger.add('../logs/proxy_all.log', format="{time:YYYY-MM-DD in HH:mm:ss} | {level} | {message}",
+                 level="DEBUG", rotation=rotation_logs, compression=compression_logs)
+
     proxy = Proxy()
     proxy.proxy_loop()
